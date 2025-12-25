@@ -1,29 +1,39 @@
-// middlewares/auth.middleware.js
-const jwt = require("jsonwebtoken");
-const { userModel } = require("../models/user.model");
+const { firebaseAdminAuth } = require("../config/firebaseAdmin");
 
-async function authGuard(req, res, next) {
-  try {
-    const authHeader = req.headers.authorization || "";
-    const token = authHeader.startsWith("Bearer ")
-      ? authHeader.substring(7)
-      : null;
+const COOKIE_NAME = process.env.SESSION_COOKIE_NAME;
 
-    if (!token) {
-      return res.status(401).json({ message: "Authentication required" });
-    }
+async function firebaseSessionMiddleware(req, res, next) {
+  const sessionCookie = req.cookies[COOKIE_NAME] || "";
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await userModel.findById(decoded.userId).select("-passwordHash");
-    if (!user) {
-      return res.status(401).json({ message: "User not found" });
-    }
-
-    req.user = { id: user._id, email: user.email };
-    next();
-  } catch (err) {
-    return res.status(401).json({ message: "Invalid or expired token" });
+  if (!sessionCookie) {
+    req.user = null;
+    return next();
   }
+
+  try {
+    const decoded = await firebaseAdminAuth.verifySessionCookie(
+      sessionCookie,
+      true
+    );
+    req.user = {
+      id: decoded.uid,
+      email: decoded.email,
+      name: decoded.name,
+    };
+  } catch (err) {
+    console.error("Invalid session cookie", err);
+    req.user = null;
+  }
+
+  return next();
 }
 
-module.exports = { authGuard };
+// For protected routes
+function requireAuth(req, res, next) {
+  if (!req.user) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  next();
+}
+
+module.exports = { firebaseSessionMiddleware, requireAuth };

@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
 
-const { authGuard } = require("../middlewares/auth.middleware");
+const { firebaseSessionMiddleware } = require("../middlewares/auth.middleware");
 const catCtrl = require("../controllers/category.controller");
 
-router.use(authGuard);
+router.use(firebaseSessionMiddleware);
 
 router.post("/", catCtrl.addCategory);
 router.get("/", catCtrl.getAllCategories);

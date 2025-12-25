@@ -1,11 +1,11 @@
 const express = require("express");
 const router = express.Router();
 
-const { authGuard } = require("../middlewares/auth.middleware");
+const { firebaseSessionMiddleware } = require("../middlewares/auth.middleware");
 const txCtrl = require("../controllers/transaction.controller");
 
 // all transaction routes require login
-router.use(authGuard);
+router.use(firebaseSessionMiddleware);
 
 router.post("/", txCtrl.addTransaction);
 router.get("/", txCtrl.getAllTransactions);

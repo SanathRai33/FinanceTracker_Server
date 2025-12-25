@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
 
-const { authGuard } = require("../middlewares/auth.middleware");
+const { firebaseSessionMiddleware } = require("../middlewares/auth.middleware");
 const debtCtrl = require("../controllers/debtRecord.controller");
 
-router.use(authGuard);
+router.use(firebaseSessionMiddleware);
 
 router.post("/", debtCtrl.addDebtRecord);
 router.get("/", debtCtrl.getAllDebtRecords);

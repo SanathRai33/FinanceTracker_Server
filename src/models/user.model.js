@@ -1,43 +1,42 @@
+// models/user.model.js
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
-    email: {
+    firebaseUid: {
       type: String,
       required: true,
       unique: true,
+    },
+    email: {
+      type: String,
+      required: true,
       lowercase: true,
       trim: true,
     },
-
-    passwordHash: {
+    name: {
       type: String,
-      required: true,
+      trim: true,
     },
-
     avatarUrl: {
       type: String,
     },
+    phoneNumber: {
+      type: String,
+    },
+    provider: {
+      type: String,
+      default: "google",
+    },
 
-    refreshTokens: [
-      {
-        token: String,
-        createdAt: { type: Date, default: Date.now },
-      },
-    ],
+    // optional extra fields for your app
     currency: {
       type: String,
-      default: "INR",
+      default: "USD",
     },
     locale: {
       type: String,
-      default: "en-IN",
+      default: "en-US",
     },
   },
   { timestamps: true }

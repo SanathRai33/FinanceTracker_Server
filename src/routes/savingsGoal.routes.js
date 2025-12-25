@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
 
-const { authGuard } = require("../middlewares/auth.middleware");
+const { firebaseSessionMiddleware } = require("../middlewares/auth.middleware");
 const goalCtrl = require("../controllers/savingsGoal.controller");
 
-router.use(authGuard);
+router.use(firebaseSessionMiddleware);
 
 router.post("/", goalCtrl.addSavingsGoal);
 router.get("/", goalCtrl.getAllSavingsGoals);
