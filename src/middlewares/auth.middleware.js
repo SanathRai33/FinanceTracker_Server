@@ -1,8 +1,9 @@
+// middlewares/auth.middleware.js
 const { firebaseAdminAuth } = require("../config/firebaseAdmin");
 
-const COOKIE_NAME = process.env.SESSION_COOKIE_NAME;
+const COOKIE_NAME = process.env.SESSION_COOKIE_NAME || "ft_session";
 
-async function firebaseSessionMiddleware(req, res, next) {
+async function firebaseSessionMiddleware(req, _res, next) {
   const sessionCookie = req.cookies[COOKIE_NAME] || "";
 
   if (!sessionCookie) {
@@ -19,6 +20,7 @@ async function firebaseSessionMiddleware(req, res, next) {
       id: decoded.uid,
       email: decoded.email,
       name: decoded.name,
+      avatarUrl: decoded.picture
     };
   } catch (err) {
     console.error("Invalid session cookie", err);

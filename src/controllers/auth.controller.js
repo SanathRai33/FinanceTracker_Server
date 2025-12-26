@@ -1,12 +1,11 @@
+// controllers/auth.controller.js
 const { firebaseAdminAuth } = require("../config/firebaseAdmin");
-const { userModel } = require("../models/user.model"); 
+const { userModel } = require("../models/user.model");
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-const COOKIE_NAME = process.env.SESSION_COOKIE_NAME;
+const COOKIE_NAME =process.env.SESSION_COOKIE_NAME || "ft_session";
 
-// POST /api/auth/google  { idToken }
-// controllers/auth.controller.js
-
+// POST /api/auth/google { idToken }
 async function loginWithGoogle(req, res) {
   try {
     const { idToken } = req.body;
@@ -24,7 +23,7 @@ async function loginWithGoogle(req, res) {
 
     // 2) Upsert user in your DB
     const user = await userModel.findOneAndUpdate(
-      { firebaseUid: uid },                        // query
+      { firebaseUid: uid },
       {
         firebaseUid: uid,
         email,
@@ -43,8 +42,8 @@ async function loginWithGoogle(req, res) {
 
     res.cookie(COOKIE_NAME, sessionCookie, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production" ? true : false, // false on localhost
+      sameSite: "lax",
       maxAge: ONE_DAY_MS,
       path: "/",
     });
@@ -71,7 +70,6 @@ async function logout(req, res) {
   try {
     const sessionCookie = req.cookies[COOKIE_NAME];
     if (sessionCookie) {
-      // Revoke session if desired
       const decoded = await firebaseAdminAuth.verifySessionCookie(
         sessionCookie,
         true
@@ -88,7 +86,6 @@ async function logout(req, res) {
 
 // GET /api/auth/me
 async function getCurrentUser(req, res) {
-  // user is attached by middleware
   if (!req.user) {
     return res.json({ user: null });
   }
