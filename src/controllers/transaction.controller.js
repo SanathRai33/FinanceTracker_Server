@@ -8,8 +8,16 @@ async function addTransaction(req, res) {
       userId: req.user.id,
     });
     return res.status(201).json({ transaction });
-  } catch {
-    return res.status(500).json({ message: "Failed to add transaction" });
+  } catch (error) {
+    console.error("Error adding transaction:", error);
+    // Return validation errors if it's a mongoose validation error
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ 
+        message: "Validation error", 
+        errors: Object.values(error.errors).map((e) => e.message) 
+      });
+    }
+    return res.status(500).json({ message: "Failed to add transaction", error: error.message });
   }
 }
 
