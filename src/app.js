@@ -9,6 +9,7 @@ const savingsGoalRoutes = require('./routes/savingsGoal.routes');
 const debtRecordRoutes = require('./routes/debtRecord.routes');
 const categoryRoutes = require('./routes/category.routes');
 const authRoutes = require('./routes/auth.routes');
+const analyticRoutes = require('./routes/analytic.routes');
 
 const app = express();
 
@@ -53,6 +54,7 @@ app.get("/", (req, res) => {
       savingsGoals: '/api/savings-goals',
       debtRecords: '/api/debt-records',
       categories: '/api/categories',
+      analytics: '/api/analytics',
     }
   });
 });
@@ -64,6 +66,7 @@ app.use('/api/transactions', transactionRoutes);
 app.use('/api/savings-goals', savingsGoalRoutes);
 app.use('/api/debt-records', debtRecordRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/analytics', analyticRoutes);
 
 // Error Handling
 app.use((err, req, res, next) => {
