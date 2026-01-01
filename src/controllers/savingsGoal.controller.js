@@ -1,29 +1,31 @@
+// controllers/savingsGoal.controller.js - COMPLETE FIXED VERSION
 const { savingsGoalModel } = require("../models/savingsGoal.model");
 
-// POST /api/goals
 async function addSavingsGoal(req, res) {
   try {
     const goal = await savingsGoalModel.create({
       ...req.body,
       userId: req.user.id,
+      currentAmount: req.body.currentAmount || 0, // ✅ Default to 0
+      status: req.body.status || "active" // ✅ Default status
     });
     return res.status(201).json({ goal });
-  } catch {
-    return res.status(500).json({ message: "Failed to add goal" });
+  } catch (error) {
+    console.error("Add goal error:", error); // ✅ Log actual error
+    return res.status(500).json({ message: "Failed to add goal", error: error.message });
   }
 }
 
-// GET /api/goals
 async function getAllSavingsGoals(req, res) {
   try {
-    const goals = await savingsGoalModel.find({ userId: req.user.id });
+    const goals = await savingsGoalModel.find({ userId: req.user.id }).sort({ createdAt: -1 });
     return res.json({ goals });
-  } catch {
+  } catch (error) {
+    console.error("Get goals error:", error);
     return res.status(500).json({ message: "Failed to fetch goals" });
   }
 }
 
-// GET /api/goals/:id
 async function getSavingsGoalById(req, res) {
   try {
     const goal = await savingsGoalModel.findOne({
@@ -34,12 +36,12 @@ async function getSavingsGoalById(req, res) {
       return res.status(404).json({ message: "Goal not found" });
     }
     return res.json({ goal });
-  } catch {
+  } catch (error) {
+    console.error("Get goal error:", error);
     return res.status(500).json({ message: "Failed to fetch goal" });
   }
 }
 
-// PUT /api/goals/:id
 async function updateSavingsGoal(req, res) {
   try {
     const goal = await savingsGoalModel.findOneAndUpdate(
@@ -51,12 +53,12 @@ async function updateSavingsGoal(req, res) {
       return res.status(404).json({ message: "Goal not found" });
     }
     return res.json({ message: "Goal updated", goal });
-  } catch {
+  } catch (error) {
+    console.error("Update goal error:", error);
     return res.status(500).json({ message: "Failed to update goal" });
   }
 }
 
-// DELETE /api/goals/:id
 async function deleteSavingsGoal(req, res) {
   try {
     const deleted = await savingsGoalModel.findOneAndDelete({
@@ -67,34 +69,35 @@ async function deleteSavingsGoal(req, res) {
       return res.status(404).json({ message: "Goal not found" });
     }
     return res.json({ message: "Goal deleted" });
-  } catch {
+  } catch (error) {
+    console.error("Delete goal error:", error);
     return res.status(500).json({ message: "Failed to delete goal" });
   }
 }
 
-// PATCH /api/goals/:id/progress
 async function updateSavingsProgress(req, res) {
   try {
     const { amountToAdd } = req.body;
-
     const goal = await savingsGoalModel.findOne({ _id: req.params.id, userId: req.user.id });
+    
     if (!goal) {
       return res.status(404).json({ message: "Goal not found" });
     }
 
     goal.currentAmount += Number(amountToAdd || 0);
+    
     if (goal.currentAmount >= goal.targetAmount && goal.status !== "completed") {
       goal.status = "completed";
     }
-
+    
     await goal.save();
     return res.json({ message: "Progress updated", goal });
-  } catch {
+  } catch (error) {
+    console.error("Update progress error:", error);
     return res.status(500).json({ message: "Failed to update progress" });
   }
 }
 
-// GET /api/goals/completed
 async function getCompletedSavingsGoals(req, res) {
   try {
     const goals = await savingsGoalModel.find({
@@ -102,12 +105,12 @@ async function getCompletedSavingsGoals(req, res) {
       status: "completed",
     });
     return res.json({ goals });
-  } catch {
+  } catch (error) {
+    console.error("Get completed goals error:", error);
     return res.status(500).json({ message: "Failed to fetch completed goals" });
   }
 }
 
-// GET /api/goals/active
 async function getActiveSavingsGoals(req, res) {
   try {
     const goals = await savingsGoalModel.find({
@@ -115,7 +118,8 @@ async function getActiveSavingsGoals(req, res) {
       status: "active",
     });
     return res.json({ goals });
-  } catch {
+  } catch (error) {
+    console.error("Get active goals error:", error);
     return res.status(500).json({ message: "Failed to fetch active goals" });
   }
 }

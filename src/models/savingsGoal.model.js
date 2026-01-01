@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const savingsGoalSchema = new mongoose.Schema(
   {
     userId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "User",
       required: true,
       index: true,
@@ -34,6 +34,12 @@ const savingsGoalSchema = new mongoose.Schema(
     category: {
       type: String,
       trim: true,
+    },
+
+    type: {
+      type: String,
+      enum: ["minor goal", "major goal"],
+      default: "minor goal",
     },
 
     status: {
