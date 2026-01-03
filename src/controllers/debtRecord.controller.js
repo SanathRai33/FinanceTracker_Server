@@ -1,25 +1,50 @@
 const { debtRecordModel } = require("../models/debtRecord.model");
 
 // POST /api/debts
+async function getAllDebtRecords(req, res) {
+  try {
+    console.log(
+      "Debt records request - user:",
+      req.user ? req.user.id : "NO USER"
+    ); // ✅ DEBUG
+
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    const records = await debtRecordModel.find({ userId: req.user.id });
+
+    if (records.length === 0) {
+      return res.json({ records: [], message: "No records found" });
+    }
+
+    return res.json({ records });
+  } catch (error) {
+    console.error("Get all debt records error:", error); // ✅ LOG ERROR
+    return res
+      .status(500)
+      .json({ message: "Failed to fetch debt records", error: error.message });
+  }
+}
+
 async function addDebtRecord(req, res) {
   try {
+    console.log("Add debt request - user:", req.user ? req.user.id : "NO USER"); // ✅ DEBUG
+
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
     const record = await debtRecordModel.create({
       ...req.body,
       userId: req.user.id,
     });
     return res.status(201).json({ record });
-  } catch {
-    return res.status(500).json({ message: "Failed to add debt record" });
-  }
-}
-
-// GET /api/debts
-async function getAllDebtRecords(req, res) {
-  try {
-    const records = await debtRecordModel.find({ userId: req.user.id });
-    return res.json({ records });
-  } catch {
-    return res.status(500).json({ message: "Failed to fetch debt records" });
+  } catch (error) {
+    console.error("Add debt record error:", error);
+    return res
+      .status(500)
+      .json({ message: "Failed to add debt record", error: error.message });
   }
 }
 
