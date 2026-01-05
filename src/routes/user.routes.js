@@ -1,17 +1,22 @@
+// routes/user.routes.js
 const express = require("express");
 const router = express.Router();
-
-const { registerUser, loginUser, logoutUser, getCurrentUser, updateUserProfile, deleteUserAccount, } = require("../controllers/user.controller");
 const { firebaseSessionMiddleware } = require("../middlewares/auth.middleware");
+const userCtrl = require("../controllers/user.controller");
 
-// public
-router.post("/register", registerUser);
-router.post("/login", loginUser);
+// All routes require authentication
+router.use(firebaseSessionMiddleware);
 
-// authenticated
-router.post("/logout", firebaseSessionMiddleware, logoutUser);
-router.get("/me", firebaseSessionMiddleware, getCurrentUser);
-router.put("/me", firebaseSessionMiddleware, updateUserProfile);
-router.delete("/me", firebaseSessionMiddleware, deleteUserAccount);
+// User profile routes
+router.get("/me", userCtrl.getCurrentUser);
+router.put("/me", userCtrl.updateUserProfile);
+router.delete("/me", userCtrl.deleteUserAccount);
+
+// User preferences routes
+router.put("/me/notifications", userCtrl.updateNotificationPreferences);
+router.put("/me/security", userCtrl.updateSecuritySettings);
+
+// Create/sync user (usually called on first login)
+router.post("/sync", userCtrl.createOrSyncUser);
 
 module.exports = router;
