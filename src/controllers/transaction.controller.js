@@ -7,17 +7,18 @@ async function addTransaction(req, res) {
       ...req.body,
       userId: req.user.id,
     });
-    return res.status(201).json({ transaction });
+    return res.status(201).json({ success: true, data: { transaction } });
   } catch (error) {
     console.error("Error adding transaction:", error);
     // Return validation errors if it's a mongoose validation error
     if (error.name === "ValidationError") {
       return res.status(400).json({ 
-        message: "Validation error", 
-        errors: Object.values(error.errors).map((e) => e.message) 
+        success: false,
+        error: "Validation error", 
+        details: Object.values(error.errors).map((e) => e.message) 
       });
     }
-    return res.status(500).json({ message: "Failed to add transaction", error: error.message });
+    return res.status(500).json({ success: false, error: "Failed to add transaction" });
   }
 }
 
@@ -27,9 +28,9 @@ async function getAllTransactions(req, res) {
     const transactions = await transactionModel
       .find({ userId: req.user.id })
       .sort({ date: -1 });
-    return res.json({ transactions });
+    return res.json({ success: true, data: { transactions } });
   } catch {
-    return res.status(500).json({ message: "Failed to fetch transactions" });
+    return res.status(500).json({ success: false, error: "Failed to fetch transactions" });
   }
 }
 
@@ -41,11 +42,11 @@ async function getTransactionById(req, res) {
       userId: req.user.id,
     });
     if (!transaction) {
-      return res.status(404).json({ message: "Transaction not found" });
+      return res.status(404).json({ success: false, error: "Transaction not found" });
     }
-    return res.json({ transaction });
+    return res.json({ success: true, data: { transaction } });
   } catch {
-    return res.status(500).json({ message: "Failed to fetch transaction" });
+    return res.status(500).json({ success: false, error: "Failed to fetch transaction" });
   }
 }
 
@@ -58,11 +59,11 @@ async function updateTransaction(req, res) {
       { new: true }
     );
     if (!transaction) {
-      return res.status(404).json({ message: "Transaction not found" });
+      return res.status(404).json({ success: false, error: "Transaction not found" });
     }
-    return res.json({ message: "Transaction updated", transaction });
+    return res.json({ success: true, data: { message: "Transaction updated", transaction } });
   } catch {
-    return res.status(500).json({ message: "Failed to update transaction" });
+    return res.status(500).json({ success: false, error: "Failed to update transaction" });
   }
 }
 

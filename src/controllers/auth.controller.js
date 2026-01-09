@@ -1,9 +1,10 @@
 // controllers/auth.controller.js
 const { firebaseAdminAuth } = require("../config/firebaseAdmin");
 const { userModel } = require("../models/user.model");
+const logger = require("../config/logger");
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-const COOKIE_NAME =process.env.SESSION_COOKIE_NAME || "ft_session";
+const COOKIE_NAME = process.env.SESSION_COOKIE_NAME || "ft_session";
 
 // POST /api/auth/google { idToken }
 async function loginWithGoogle(req, res) {
@@ -48,9 +49,11 @@ async function loginWithGoogle(req, res) {
       path: "/",
     });
 
+    logger.info(`User logged in: ${email} (${uid})`);
+
     return res.json({
-      message: "Logged in",
-      user: {
+      success: true,
+      data: {
         id: user._id,
         firebaseUid: user.firebaseUid,
         email: user.email,
@@ -60,8 +63,9 @@ async function loginWithGoogle(req, res) {
       },
     });
   } catch (err) {
+    logger.error(`Login failed: ${err.message}`);
     console.error(err);
-    return res.status(401).json({ message: "Invalid credentials" });
+    return res.status(401).json({ success: false, error: "Invalid credentials" });
   }
 }
 
@@ -75,21 +79,22 @@ async function logout(req, res) {
         true
       );
       await firebaseAdminAuth.revokeRefreshTokens(decoded.sub);
+      logger.info(`User logged out: ${decoded.email} (${decoded.uid})`);
     }
   } catch (e) {
     console.error(e);
   }
 
   res.clearCookie(COOKIE_NAME, { path: "/" });
-  return res.json({ message: "Logged out" });
+  return res.json({ success: true, data: { message: "Logged out" } });
 }
 
 // GET /api/auth/me
 async function getCurrentUser(req, res) {
   if (!req.user) {
-    return res.json({ user: null });
+    return res.json({ success: true, data: { user: null } });
   }
-  return res.json({ user: req.user });
+  return res.json({ success: true, data: { user: req.user } });
 }
 
 module.exports = {

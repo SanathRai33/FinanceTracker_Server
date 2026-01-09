@@ -10,33 +10,63 @@ const debtRecordRoutes = require('./routes/debtRecord.routes');
 const categoryRoutes = require('./routes/category.routes');
 const authRoutes = require('./routes/auth.routes');
 const analyticRoutes = require('./routes/analytic.routes');
+const { firebaseSessionMiddleware } = require('./middlewares/auth.middleware');
+const { apiLimiter, authLimiter, writeLimiter } = require('./middlewares/rateLimit.middleware');
+const { cacheMiddleware } = require('./middlewares/cache.middleware');
+const logger = require('./config/logger');
+const env = require('./config/env');
 
 const app = express();
 
+// Security headers with Helmet
 app.use(helmet({
-  contentSecurityPolicy: false 
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
 }));
 
-// Acess points
+// CORS
 app.use(cors({
-  origin: process.env.FRONTEND_ORIGIN,
+  origin: env.FRONTEND_ORIGIN,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
+// Rate limiting
+app.use('/api/', apiLimiter);
+app.use('/api/auth/', authLimiter);
 
+// Write operations rate limiting
+app.use('/api/', (req, res, next) => {
+  if (['POST', 'PUT', 'DELETE'].includes(req.method)) {
+    return writeLimiter(req, res, next);
+  }
+  next();
+});
+
+// Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
-// Logging Middleware
-if (process.env.NODE_ENV === 'development') {
+// Firebase session middleware
+app.use(firebaseSessionMiddleware);
+
+// Logging
+if (env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
+// Custom logging middleware
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path} - ${req.ip} - ${new Date().toISOString()}`);
+  logger.http(`${req.method} ${req.path} - ${req.ip}`);
   next();
 });
 
@@ -44,7 +74,7 @@ app.use((req, res, next) => {
 app.get("/", (req, res) => {
   res.json({
     success: true,
-    message: "Devashya Naturals API",
+    message: "Finance Tracker API",
     version: "1.0.0",
     status: "operational",
     endpoints: {
@@ -56,6 +86,16 @@ app.get("/", (req, res) => {
       categories: '/api/categories',
       analytics: '/api/analytics',
     }
+  });
+});
+
+// Health Check Endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Server is healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
   });
 });
 
