@@ -32,10 +32,10 @@ async function getBalanceOverTime(req, res) {
         }
       }
     ]);
-    return res.json({ balanceOverTime: balanceData });
+    return res.json({ success: true, data: { balanceOverTime: balanceData } });
   } catch (error) {
     console.error("Balance over time error:", error);
-    return res.status(500).json({ message: "Failed to compute balance over time" });
+    return res.status(500).json({ success: false, error: "Failed to compute balance over time" });
   }
 }
 

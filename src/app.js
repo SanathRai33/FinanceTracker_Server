@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const compression = require('compression');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const userRoutes = require('./routes/user.routes');
@@ -17,6 +18,14 @@ const logger = require('./config/logger');
 const env = require('./config/env');
 
 const app = express();
+
+// Trust proxy for production (behind load balancer)
+if (env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
+// Compression
+app.use(compression());
 
 // Security headers with Helmet
 app.use(helmet({
@@ -74,17 +83,19 @@ app.use((req, res, next) => {
 app.get("/", (req, res) => {
   res.json({
     success: true,
-    message: "Finance Tracker API",
-    version: "1.0.0",
-    status: "operational",
-    endpoints: {
-      auth: '/api/auth',
-      users: '/api/users',
-      transactions: '/api/transactions',
-      savingsGoals: '/api/savings-goals',
-      debtRecords: '/api/debt-records',
-      categories: '/api/categories',
-      analytics: '/api/analytics',
+    data: {
+      message: "Finance Tracker API",
+      version: "1.0.0",
+      status: "operational",
+      endpoints: {
+        auth: '/api/auth',
+        users: '/api/users',
+        transactions: '/api/transactions',
+        savingsGoals: '/api/savings-goals',
+        debtRecords: '/api/debt-records',
+        categories: '/api/categories',
+        analytics: '/api/analytics',
+      }
     }
   });
 });
@@ -93,9 +104,11 @@ app.get("/", (req, res) => {
 app.get('/health', (req, res) => {
   res.status(200).json({
     success: true,
-    message: 'Server is healthy',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
+    data: {
+      message: "Server is healthy",
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+    },
   });
 });
 

@@ -63,6 +63,7 @@ const transactionSchema = new mongoose.Schema(
 transactionSchema.index({ userId: 1, date: -1 });
 transactionSchema.index({ userId: 1, categoryId: 1 });
 transactionSchema.index({ userId: 1, type: 1 });
+transactionSchema.index({ userId: 1, type: 1, date: -1 }); // For analytics aggregations
 
 const transactionModel = mongoose.model("Transaction", transactionSchema);
 module.exports = { transactionModel };

@@ -7,7 +7,7 @@ async function getCurrentUser(req, res) {
   try {
 
     if (!req.user || !req.user.id) {
-      return res.status(401).json({ message: "User not authenticated" });
+      return res.status(401).json({ success: false, error: "User not authenticated" });
     }
 
     const user = await userModel.findOne({
@@ -17,15 +17,15 @@ async function getCurrentUser(req, res) {
     }).select("-__v -deleted -deletedAt -security -verification -metadata");
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ success: false, error: "User not found" });
     }
 
-    return res.json({ user });
+    return res.json({ success: true, data: { user } });
   } catch (error) {
     console.error("Get current user error:", error);
     return res.status(500).json({ 
-      message: "Failed to fetch user profile", 
-      error: error.message 
+      success: false,
+      error: "Failed to fetch user profile"
     });
   }
 }

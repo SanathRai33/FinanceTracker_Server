@@ -75,11 +75,11 @@ async function deleteTransaction(req, res) {
       userId: req.user.id,
     });
     if (!deleted) {
-      return res.status(404).json({ message: "Transaction not found" });
+      return res.status(404).json({ success: false, error: "Transaction not found" });
     }
-    return res.json({ message: "Transaction deleted" });
+    return res.json({ success: true, data: { message: "Transaction deleted" } });
   } catch {
-    return res.status(500).json({ message: "Failed to delete transaction" });
+    return res.status(500).json({ success: false, error: "Failed to delete transaction" });
   }
 }
 
@@ -95,9 +95,9 @@ async function getTransactionsByMonth(req, res) {
       date: { $gte: start, $lte: end },
     }).sort({ date: -1 });
 
-    return res.json({ transactions });
+    return res.json({ success: true, data: { transactions } });
   } catch {
-    return res.status(500).json({ message: "Failed to fetch by month" });
+    return res.status(500).json({ success: false, error: "Failed to fetch by month" });
   }
 }
 
@@ -109,9 +109,9 @@ async function getTransactionsByCategory(req, res) {
       categoryId: req.params.categoryId,
     }).sort({ date: -1 });
 
-    return res.json({ transactions });
+    return res.json({ success: true, data: { transactions } });
   } catch {
-    return res.status(500).json({ message: "Failed to fetch by category" });
+    return res.status(500).json({ success: false, error: "Failed to fetch by category" });
   }
 }
 
@@ -123,9 +123,9 @@ async function getTransactionsByType(req, res) {
       type: req.params.type,
     }).sort({ date: -1 });
 
-    return res.json({ transactions });
+    return res.json({ success: true, data: { transactions } });
   } catch {
-    return res.status(500).json({ message: "Failed to fetch by type" });
+    return res.status(500).json({ success: false, error: "Failed to fetch by type" });
   }
 }
 
@@ -137,9 +137,9 @@ async function getRecurringTransactions(req, res) {
       recurring: true,
     }).sort({ date: -1 });
 
-    return res.json({ transactions });
+    return res.json({ success: true, data: { transactions } });
   } catch {
-    return res.status(500).json({ message: "Failed to fetch recurring" });
+    return res.status(500).json({ success: false, error: "Failed to fetch recurring" });
   }
 }
 
@@ -158,9 +158,9 @@ async function getMonthlySummary(req, res) {
       },
     ]);
 
-    return res.json({ summary });
+    return res.json({ success: true, data: { summary } });
   } catch {
-    return res.status(500).json({ message: "Failed to compute monthly summary" });
+    return res.status(500).json({ success: false, error: "Failed to compute monthly summary" });
   }
 }
 
@@ -177,9 +177,9 @@ async function getYearlySummary(req, res) {
       },
     ]);
 
-    return res.json({ summary });
+    return res.json({ success: true, data: { summary } });
   } catch {
-    return res.status(500).json({ message: "Failed to compute yearly summary" });
+    return res.status(500).json({ success: false, error: "Failed to compute yearly summary" });
   }
 }
 
@@ -201,12 +201,15 @@ async function getDashboardStats(req, res) {
     const netBalance = totalIncome - totalExpenses;
 
     return res.json({
-      totalIncome,
-      totalExpenses,
-      netBalance,
+      success: true,
+      data: {
+        totalIncome,
+        totalExpenses,
+        netBalance,
+      },
     });
   } catch {
-    return res.status(500).json({ message: "Failed to compute dashboard stats" });
+    return res.status(500).json({ success: false, error: "Failed to compute dashboard stats" });
   }
 }
 
@@ -223,9 +226,9 @@ async function getAnalyticsData(req, res) {
       { $group: { _id: "$needOrWant", total: { $sum: "$amount" } } },
     ]);
 
-    return res.json({ byCategory, byNeedWant });
+    return res.json({ success: true, data: { byCategory, byNeedWant } });
   } catch {
-    return res.status(500).json({ message: "Failed to compute analytics" });
+    return res.status(500).json({ success: false, error: "Failed to compute analytics" });
   }
 }
 
