@@ -2,7 +2,7 @@ const rateLimit = require('express-rate-limit');
 
 // General API rate limiter
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 5 * 60 * 1000, // 5 minutes
   max: 100, // limit each IP to 100 requests per windowMs
   message: {
     success: false,
@@ -14,8 +14,8 @@ const apiLimiter = rateLimit({
 
 // Stricter limiter for auth routes
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // limit each IP to 5 auth requests per windowMs
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 10, // limit each IP to 10 auth requests per windowMs
   message: {
     success: false,
     error: 'Too many authentication attempts, please try again later.',
