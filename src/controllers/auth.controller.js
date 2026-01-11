@@ -94,7 +94,33 @@ async function getCurrentUser(req, res) {
   if (!req.user) {
     return res.json({ success: true, data: { user: null } });
   }
-  return res.json({ success: true, data: { user: req.user } });
+
+  try {
+    // Fetch full user data from database
+    const user = await userModel.findOne({ firebaseUid: req.user.id });
+    if (!user) {
+      return res.json({ success: true, data: { user: null } });
+    }
+
+    return res.json({
+      success: true,
+      data: {
+        user: {
+          id: user._id,
+          email: user.email,
+          name: user.name,
+          avatarUrl: user.avatarUrl,
+          phoneNumber: user.phoneNumber,
+          currency: user.currency,
+          language: user.locale,
+          createdAt: user.createdAt,
+        }
+      }
+    });
+  } catch (err) {
+    logger.error(`Get current user failed: ${err.message}`);
+    return res.status(500).json({ success: false, error: "Internal server error" });
+  }
 }
 
 module.exports = {
