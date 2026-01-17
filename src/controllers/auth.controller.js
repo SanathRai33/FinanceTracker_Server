@@ -36,6 +36,11 @@ async function loginWithGoogle(req, res) {
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
 
+    if (!user) {
+      logger.error(`Failed to create/update user for ${email}`);
+      return res.status(500).json({ success: false, error: "Failed to process user data" });
+    }
+
     // 3) Create 1‑day session cookie
     const sessionCookie = await firebaseAdminAuth.createSessionCookie(idToken, {
       expiresIn: ONE_DAY_MS,
@@ -98,8 +103,25 @@ async function getCurrentUser(req, res) {
   try {
     // Fetch full user data from database
     const user = await userModel.findOne({ firebaseUid: req.user.id });
+    
     if (!user) {
-      return res.json({ success: true, data: { user: null } });
+      logger.warn(`User not found in DB for firebaseUid: ${req.user.id}`);
+      // Still return user data from Firebase token even if not in DB
+      return res.json({
+        success: true,
+        data: {
+          user: {
+            id: req.user.id,
+            email: req.user.email,
+            name: req.user.name,
+            avatarUrl: req.user.avatarUrl,
+            phoneNumber: null,
+            currency: "USD",
+            language: "en",
+            createdAt: new Date(),
+          }
+        }
+      });
     }
 
     return res.json({

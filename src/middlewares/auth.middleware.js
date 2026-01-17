@@ -4,26 +4,45 @@ const { firebaseAdminAuth } = require("../config/firebaseAdmin");
 const COOKIE_NAME = process.env.SESSION_COOKIE_NAME || "ft_session";
 
 async function firebaseSessionMiddleware(req, _res, next) {
-  const sessionCookie = req.cookies[COOKIE_NAME] || "";
+  let sessionCookie = req.cookies[COOKIE_NAME] || "";
+  let token = null;
 
-  if (!sessionCookie) {
+  // Check for Bearer token in Authorization header
+  const authHeader = req.headers.authorization || "";
+  if (authHeader.startsWith("Bearer ")) {
+    token = authHeader.substring(7);
+  }
+
+  // Try session cookie first, then Bearer token
+  if (!sessionCookie && !token) {
     req.user = null;
     return next();
   }
 
   try {
-    const decoded = await firebaseAdminAuth.verifySessionCookie(
-      sessionCookie,
-      true
-    );
-    req.user = {
-      id: decoded.uid,
-      email: decoded.email,
-      name: decoded.name,
-      avatarUrl: decoded.picture
-    };
+    let decoded;
+    
+    if (sessionCookie) {
+      // Verify session cookie
+      decoded = await firebaseAdminAuth.verifySessionCookie(
+        sessionCookie,
+        true
+      );
+    } else if (token) {
+      // Verify Bearer token (ID token)
+      decoded = await firebaseAdminAuth.verifyIdToken(token);
+    }
+
+    if (decoded) {
+      req.user = {
+        id: decoded.uid,
+        email: decoded.email,
+        name: decoded.name,
+        avatarUrl: decoded.picture
+      };
+    }
   } catch (err) {
-    console.error("Invalid session cookie", err);
+    console.error("Invalid session cookie or token", err);
     req.user = null;
   }
 
